@@ -1,0 +1,56 @@
+version: '3.1'
+
+services:
+  yourls:
+    image: yourls:latest
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      YOURLS_DB_HOST: mysql
+      YOURLS_DB_USER: yourls_user
+      YOURLS_DB_PASS: yourls_password
+      YOURLS_DB_NAME: yourls
+      YOURLS_SITE: https://yourdomain.com
+      YOURLS_USER: admin
+      YOURLS_PASS: admin_password
+      VITE_SUPABASE_URL: https://irlxxeoocqktiuulfuqb.supabase.co
+      VITE_SUPABASE_ANON_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlybHh4ZW9vY3FrdGl1dWxmdXFiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg5MDU2MTgsImV4cCI6MjA3NDQ4MTYxOH0.1rjQgX34Kj8R_ibQ6LsmXl6J3WI8d5kEXrk3SbB6iyg
+    depends_on:
+      - mysql
+      - supabase
+
+  mysql:
+    image: mysql:5.7
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root_password
+      MYSQL_DATABASE: yourls
+      MYSQL_USER: yourls_user
+      MYSQL_PASSWORD: yourls_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  supabase-db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: supabase_password
+    volumes:
+      - supabase-db-data:/var/lib/postgresql/data
+
+  supabase-auth:
+    image: supabase/gotrue:latest
+    depends_on:
+      - supabase-db
+    environment:
+      GOTRUE_DB_DRIVER: "postgres"
+      GOTRUE_DB_DATABASE_URL: "postgres://postgres:supabase_password@supabase-db:5432/postgres"
+      GOTRUE_SITE_URL: "http://localhost:8080"
+      GOTRUE_JWT_SECRET: "super-secret-jwt-token-here"
+    ports:
+      - "9999:9999"
+
+volumes:
+  mysql_data:
+  supabase-db-data:
